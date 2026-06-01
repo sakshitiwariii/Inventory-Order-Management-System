@@ -35,6 +35,18 @@ export default function Dashboard() {
         <h2>Dashboard</h2>
       </div>
 
+      <div className="card" style={{ marginBottom: '1.25rem' }}>
+        <h3 style={{ marginBottom: 8 }}>Welcome back</h3>
+        <p style={{ marginBottom: 12, color: '#6b7280' }}>
+          Quick actions to get started. View products, manage orders, or add customers.
+        </p>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Link to="/products" className="btn btn-primary">Products</Link>
+          <Link to="/orders" className="btn btn-secondary">Orders</Link>
+          <Link to="/customers" className="btn btn-secondary">Customers</Link>
+        </div>
+      </div>
+
       <div className="stats-grid">
         <div className="stat-card">
           <div className="label">Total Products</div>
