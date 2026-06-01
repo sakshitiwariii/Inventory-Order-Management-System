@@ -59,7 +59,6 @@ class OrderService:
         if len(products) != len(set(product_ids)):
             raise ValueError("One or more products not found")
 
-        # Aggregate quantities per product (in case of duplicate lines)
         qty_by_product: dict[int, int] = {}
         for item in data.items:
             qty_by_product[item.product_id] = qty_by_product.get(item.product_id, 0) + item.quantity

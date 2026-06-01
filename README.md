@@ -1,85 +1,34 @@
 # Inventory & Order Management System
 
-A small full-stack app for managing products, customers, orders, and stock levels. Built with FastAPI + PostgreSQL on the backend and React (Vite) on the frontend.
+This project is an Inventory & Order Management System built using FastAPI, PostgreSQL, SQLAlchemy, React, and Docker. It allows users to manage products, customers, orders, and inventory from a single dashboard. The application validates stock availability before order creation, automatically updates inventory levels after successful orders, and provides dashboard insights such as total products, customers, orders, and low-stock items.
 
-## Why this stack
-
-- **FastAPI** — quick to build REST APIs with automatic OpenAPI docs, solid validation via Pydantic, and good async support if you need it later.
-- **PostgreSQL** — relational data (orders, line items, stock) fits naturally here. Row-level locking (`SELECT FOR UPDATE`) makes concurrent order placement safer than doing everything in SQLite for a multi-user setup.
-- **React + Vite** — fast dev server, simple deployment as static files behind nginx.
+## Implementation Summary
+The backend was developed using FastAPI with SQLAlchemy ORM for database operations and PostgreSQL as the primary database. Business rules such as unique SKU and email validation, inventory checks, stock deduction and transactional order processing were implemented on the server side. The frontend was built with React and Vite, providing a responsive interface for managing products, customers, and orders. Axios was used for API communication, while Docker and Docker Compose were used to containerize the application for consistent local development. For deployment, the backend was connected to a Neon PostgreSQL database and hosted separately from the frontend, which was deployed on Vercel.
 
 ## Architecture
 
 ```
 backend/app/
-├── main.py          # App entry, CORS, router registration
-├── database.py      # SQLAlchemy engine + session
-├── models/          # ORM models
-├── schemas/         # Pydantic request/response models
-├── routers/         # HTTP layer (thin)
-├── services/        # Business logic (stock checks, transactions)
-└── utils/           # Logging setup
+├── main.py          
+├── database.py      
+├── models/          
+├── schemas/         
+├── routers/         
+├── services/        
+└── utils/           
 
 frontend/src/
-├── pages/           # Route-level screens
-├── components/      # Shared UI (layout, modal, pagination)
+├── pages/           
+├── components/      
 ├── services/        # Axios API client
-└── hooks/           # useDebounce for search
+└── hooks/           
 ```
 
-Routers stay thin; services own validation and transactions. No extra repository layer — for a project this size, SQLAlchemy sessions in services are enough.
 
 **Order flow:** validate customer → lock products (`with_for_update`) → check stock → create order + line items → deduct stock → commit. If anything fails, the transaction rolls back.
 
 **Low stock:** products at or below `LOW_STOCK_THRESHOLD` (default 10) show up on the dashboard and are highlighted in the product list.
 
-## Prerequisites
-
-- Docker & Docker Compose, or
-- Python 3.12+, Node 20+, PostgreSQL 16
-
-## Quick start (Docker)
-
-```bash
-cp .env.example .env
-# edit .env if you want different credentials
-
-docker compose up --build
-```
-
-- Frontend: configured via `FRONTEND_PORT` and `VITE_API_URL`
-- Backend API: configured via `BACKEND_PORT` and `DATABASE_URL`
-- API docs: available at `/docs` on your backend host
-
-## Local development (without Docker)
-
-### Database
-
-Start PostgreSQL and create a database matching your `DATABASE_URL`.
-
-### Backend
-
-```bash
-cd backend
-cp .env.example .env
-# set DATABASE_URL=postgresql://user:pass@your-db-host/dbname
-
-python -m venv .venv
-.venv\Scripts\activate   # Windows
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host $BACKEND_HOST --port $PORT
-```
-
-### Frontend
-
-```bash
-cd frontend
-cp .env.example .env
-npm install
-npm run dev
-```
-
-Vite proxies `/api` to the backend URL configured in `VITE_API_URL`.
 
 ## Environment variables
 
@@ -91,52 +40,35 @@ Vite proxies `/api` to the backend URL configured in `VITE_API_URL`.
 | `POSTGRES_*` | DB credentials for Docker Compose |
 | `VITE_API_URL` | API base URL for frontend build |
 
-## API endpoints
 
-Base path: `/api`
+## API Overview
 
-### Dashboard
+The backend exposes a small set of REST APIs for managing products, customers, inventory, and orders.
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/dashboard/stats` | Totals for products, customers, orders, low-stock count |
+## Dashboard
+GET /dashboard/stats – Returns overall statistics such as total products, customers, orders, and low-stock items.
+## Products
+GET /products – Fetch products with search and pagination support.
+GET /products/{id} – Get details of a specific product.
+GET /products/low-stock – View products running low on stock.
+POST /products – Add a new product.
+PUT /products/{id} – Update product details.
+DELETE /products/{id} – Remove a product.
+## Customers
+GET /customers – Fetch customers with search and pagination.
+GET /customers/{id} – Get customer details.
+POST /customers – Create a customer record.
+PUT /customers/{id} – Update customer information.
+DELETE /customers/{id} – Delete a customer.
+## Orders
+GET /orders – List all orders with filtering options.
+GET /orders/{id} – View a specific order and its items.
+POST /orders – Create a new order after validating inventory.
+PATCH /orders/{id}/status – Update order status.
+GET /orders/export/csv – Export order data as a CSV file.
+## Health Check
+GET /health – Simple endpoint used to verify that the API is running.
 
-### Products
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/products` | List (`page`, `page_size`, `search`) |
-| GET | `/products/low-stock` | Products at or below threshold |
-| GET | `/products/{id}` | Single product |
-| POST | `/products` | Create (SKU must be unique) |
-| PUT | `/products/{id}` | Update |
-| DELETE | `/products/{id}` | Delete |
-
-### Customers
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/customers` | List (`page`, `page_size`, `search`) |
-| GET | `/customers/{id}` | Single customer |
-| POST | `/customers` | Create (email must be unique) |
-| PUT | `/customers/{id}` | Update |
-| DELETE | `/customers/{id}` | Delete |
-
-### Orders
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/orders` | List (`page`, `page_size`, `status`) |
-| GET | `/orders/export/csv` | Download orders as CSV |
-| GET | `/orders/{id}` | Order with line items |
-| POST | `/orders` | Create order (validates stock, deducts on success) |
-| PATCH | `/orders/{id}/status` | Update status (`Pending` / `Completed`) |
-
-### Health
-
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/health` | Health check |
 
 ## Business rules
 
@@ -145,8 +77,7 @@ Base path: `/api`
 - Stock cannot go negative (check constraint + service validation).
 - Order creation runs in a single DB transaction with row locks on products.
 
-## Project notes
+## Deployment Links 
+Frontend url:https://inventory-order-management-system-k.vercel.app/
+Backend url :https://inventory-order-management-system-orcin.vercel.app/
 
-- Tables are created on startup via SQLAlchemy `create_all`. Fine for a demo; use Alembic if this goes to production.
-- Successful orders are marked `Completed` after stock is deducted. Status can still be updated via PATCH for manual corrections.
-- CSV export includes one row per line item.

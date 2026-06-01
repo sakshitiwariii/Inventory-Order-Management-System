@@ -1,5 +1,6 @@
 services:
   backend:
+    image: ${BACKEND_IMAGE:-inventoryordermanagementsystem-backend:latest}
     build: ./backend
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
