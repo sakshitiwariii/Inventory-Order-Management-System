@@ -47,9 +47,9 @@ cp .env.example .env
 docker compose up --build
 ```
 
-- Frontend: http://localhost:5173  
-- Backend API: http://localhost:8000  
-- API docs: http://localhost:8000/docs  
+- Frontend: configured via `FRONTEND_PORT` and `VITE_API_URL`
+- Backend API: configured via `BACKEND_PORT` and `DATABASE_URL`
+- API docs: available at `/docs` on your backend host
 
 ## Local development (without Docker)
 
@@ -62,12 +62,12 @@ Start PostgreSQL and create a database matching your `DATABASE_URL`.
 ```bash
 cd backend
 cp .env.example .env
-# set DATABASE_URL=postgresql://user:pass@localhost:5432/inventory_db
+# set DATABASE_URL=postgresql://user:pass@your-db-host/dbname
 
 python -m venv .venv
 .venv\Scripts\activate   # Windows
 pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --host $BACKEND_HOST --port $PORT
 ```
 
 ### Frontend
@@ -79,7 +79,7 @@ npm install
 npm run dev
 ```
 
-Vite proxies `/api` to `http://localhost:8000` in dev mode.
+Vite proxies `/api` to the backend URL configured in `VITE_API_URL`.
 
 ## Environment variables
 

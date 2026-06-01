@@ -34,10 +34,12 @@ This guide explains how to deploy your Inventory Management System with Neon (Po
 # .env - DO NOT commit sensitive values
 DATABASE_URL=postgresql://neondb_owner:npg_f5weT3iGojCh@ep-rough-sound-aq7ejks9.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require
 
-BACKEND_PORT=8000
 BACKEND_HOST=0.0.0.0
+BACKEND_PORT=8000
+PORT=8000
 
 FRONTEND_PORT=5173
+VITE_DEV_PORT=5173
 VITE_API_URL=http://localhost:8000/api
 
 CORS_ORIGINS=http://localhost:5173,http://localhost:3000
@@ -100,11 +102,11 @@ python-dotenv==1.0.1
 ```
 
 ### 3. Update backend code for Vercel
-Edit `backend/app/main.py` to use Vercel's PORT env var:
+Edit `backend/app/main.py` to use Vercel's environment variables:
 
 Already updated in Dockerfile:
 ```bash
-sh -c "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
+sh -c "uvicorn app.main:app --host ${BACKEND_HOST} --port ${PORT}"
 ```
 
 ### 4. Deploy to Vercel
