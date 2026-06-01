@@ -8,7 +8,7 @@ from app.utils.logging_config import setup_logging
 from app.routers import products, customers, orders, dashboard
 
 setup_logging()
-
+print("CORS_ORIGINS =", cors_origins)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
